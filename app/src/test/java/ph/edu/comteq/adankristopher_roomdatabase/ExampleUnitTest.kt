@@ -1,4 +1,4 @@
-package ph.edu.comteq.wendellmae_roomdatabase
+package ph.edu.comteq.adankristopher_roomdatabase
 
 import org.junit.Test
 

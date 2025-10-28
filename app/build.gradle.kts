@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "ph.edu.comteq.wendellmae_roomdatabase"
+    namespace = "ph.edu.comteq.adankristopher_roomdatabase"
     compileSdk = 36
 
     defaultConfig {

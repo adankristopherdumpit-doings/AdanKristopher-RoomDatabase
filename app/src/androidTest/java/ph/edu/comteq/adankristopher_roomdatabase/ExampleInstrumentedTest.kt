@@ -1,4 +1,4 @@
-package ph.edu.comteq.wendellmae_roomdatabase
+package ph.edu.comteq.adankristopher_roomdatabase
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

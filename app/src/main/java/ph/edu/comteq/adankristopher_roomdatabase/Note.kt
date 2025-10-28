@@ -1,4 +1,4 @@
-package ph.edu.comteq.wendellmae_roomdatabase
+package ph.edu.comteq.adankristopher_roomdatabase
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -10,6 +10,9 @@ data class Note(
     val id: Int = 0,
     val title: String,
     val content: String,
+    val category: String ="",
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(name = "updated_at")
+    val updatedAt: Long = System.currentTimeMillis()
 )
