@@ -6,19 +6,25 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import kotlinx.coroutines.selects.SelectInstance
+
 
 @Database(
     entities = [
-        Note::class],
-    version = 1,
-    exportSchema = true
+        Note::class,
+        Tag::class,
+        NoteTagCrossRef::class
+    ],
+    version = 2,
+    exportSchema = true  // export to JSON OPTIOANAL
 )
-abstract class AppDatabase : RoomDatabase() {
+abstract class AppDatabase: RoomDatabase(){
     abstract fun noteDao(): NoteDao
 
-    companion object {
+    companion object{
         @Volatile
         private var instance: AppDatabase? = null
+
         // Migration from version 1 to version 2
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
@@ -53,9 +59,9 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "notes_database"
+                    "note_database"
                 )
-                    .addMigrations(MIGRATION_1_2)  // NEW: Add the migration
+                    .addMigrations(MIGRATION_1_2)
                     .build()
                 this.instance = instance
                 instance

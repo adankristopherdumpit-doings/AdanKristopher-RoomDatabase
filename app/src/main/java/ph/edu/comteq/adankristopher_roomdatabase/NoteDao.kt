@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface NoteDao {
     @Insert
-    suspend fun insertNote(note: Note): Long
+    suspend fun insertNoteReturningId(note: Note): Long
 
     @Update
     suspend fun updateNote(note: Note)
@@ -24,59 +24,47 @@ interface NoteDao {
     suspend fun getNoteById(id: Int): Note?
 
     @Query("SELECT * FROM notes ORDER BY id DESC")
-    fun getAllNotes(): Flow<List<Note>>
+    fun getALlNotes(): Flow<List<Note>>
 
     @Query("DELETE FROM notes")
     suspend fun deleteAllNotes()
 
-@Query("SELECT * FROM notes WHERE title LIKE '%' || :searchQuery || '%' OR content LIKE '%' || :searchQuery || '%' ORDER BY updated_at DESC")
-fun searchNotes(searchQuery: String): Flow<List<Note>>
+    @Query("SELECT * FROM notes WHERE title " +
+            "LIKE '%' || :searchQuery || '%' OR content LIKE '%' || :searchQuery || '%' ORDER BY id DESC")
+    fun searchNotes(searchQuery: String): Flow<List<Note>>
 
-// NEW: Search by category
-@Query("SELECT * FROM notes WHERE category = :category ORDER BY updated_at DESC")
-fun getNotesByCategory(category: String): Flow<List<Note>>
+    // Connect a note to a tag
+    @Insert(onConflict = OnConflictStrategy.IGNORE)  // Ignore if already connected
+    suspend fun insertNoteTagCrossRef(crossRef: NoteTagCrossRef)
 
-// NEW: Get all unique categories (useful for showing category list)
-@Query("SELECT DISTINCT category FROM notes WHERE category != '' ORDER BY category ASC")
-fun getAllCategories(): Flow<List<String>>
+    // Disconnect a note from a tag
+    @Delete
+    suspend fun deleteNoteTagCrossRef(crossRef: NoteTagCrossRef)
 
-@Insert(onConflict = OnConflictStrategy.REPLACE)
-suspend fun insertTag(tag: Tag): Long
-
-@Update
-suspend fun updateTag(tag: Tag)
-
-@Delete
-suspend fun deleteTag(tag: Tag)
-
-@Query("SELECT * FROM tags ORDER BY name ASC")
-fun getAllTags(): Flow<List<Tag>>
-
-@Query("SELECT * FROM tags WHERE id = :id")
-suspend fun getTagById(id: Int): Tag?
-
-@Insert(onConflict = OnConflictStrategy.IGNORE)
-suspend fun insertNoteTagCrossRef(crossRef: NoteTagCrossRef)
-
-@Delete
-suspend fun deleteNoteTagCrossRef(crossRef: NoteTagCrossRef)
-
-@Transaction  // Important: Ensures all data loads together
-@Query("SELECT * FROM notes WHERE id = :noteId")
-suspend fun getNoteWithTags(noteId: Int): NoteWithTags?
-
-@Transaction
-@Query("SELECT * FROM notes ORDER BY updated_at DESC")
-fun getAllNotesWithTags(): Flow<List<NoteWithTags>>
-
-    // NEW: Search notes with tags included
+    // Get all notes WITH their tags
     @Transaction
-    @Query("""
-        SELECT * FROM notes 
-        WHERE title LIKE '%' || :searchQuery || '%' OR content LIKE '%' || :searchQuery || '%'
-        ORDER BY updated_at DESC
-    """)
-    fun searchNotesWithTags(searchQuery: String): Flow<List<NoteWithTags>>
+    @Query("SELECT * FROM notes ORDER BY updated_at DESC")
+    fun getAllNotesWithTags(): Flow<List<NoteWithTags>>
+
+    // Get a note WITH all its tags
+    @Transaction  // Important: Ensures all data loads together
+    @Query("SELECT * FROM notes WHERE id = :noteId")
+    suspend fun getNoteWithTags(noteId: Int): NoteWithTags?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)  // Ignore if already connected
+    suspend fun insertTag(tag: Tag): Long
+
+    @Update
+    suspend fun updateTag(tag: Tag)
+
+    @Delete
+    suspend fun deleteTag(tag: Tag)
+
+    @Query("SELECT * FROM tags ORDER BY name ASC")
+    fun getAllTags(): Flow<List<Tag>>
+
+    @Query("SELECT * FROM tags WHERE id = :id")
+    suspend fun getTagById(id: Int): Tag?
 
     // Get all notes that have a specific tag
     @Transaction

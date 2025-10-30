@@ -10,7 +10,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "ph.edu.comteq.wendellmae_roomdatabase"
+        applicationId = "ph.edu.comteq.adankristopher_roomdatabase"
         minSdk = 33
         targetSdk = 36
         versionCode = 1
