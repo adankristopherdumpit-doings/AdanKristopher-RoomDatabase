@@ -29,17 +29,27 @@ import androidx.core.graphics.toColorInt
 @Composable
 fun AddNoteDialog(
     availableTags: List<Tag>,
+    existingNote: NoteWithTags? = null, // 👈 Optional for Edit Mode
     onDismiss: () -> Unit,
     onSave: (title: String, content: String, category: String, selectedTags: List<Tag>) -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var content by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("") }
-    val selectedTags = remember { mutableStateListOf<Tag>() }
+    // If editing, prefill fields from the existing note
+    var title by remember { mutableStateOf(existingNote?.note?.title ?: "") }
+    var content by remember { mutableStateOf(existingNote?.note?.content ?: "") }
+    var category by remember { mutableStateOf(existingNote?.note?.category ?: "") }
+
+    // Selected tags – pre-select those already linked to this note if in edit mode
+    val selectedTags = remember {
+        mutableStateListOf<Tag>().apply {
+            existingNote?.tags?.let { addAll(it) }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Note") },
+        title = {
+            Text(if (existingNote == null) "Add Note" else "Edit Note") // 👈 Dynamic title
+        },
         text = {
             Column {
                 OutlinedTextField(
@@ -63,9 +73,9 @@ fun AddNoteDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+
                 Text("Tags:", style = MaterialTheme.typography.labelMedium)
                 FlowRow(
-                    // Replace mainAxisSpacing and crossAxisSpacing
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -91,7 +101,9 @@ fun AddNoteDialog(
             Button(onClick = {
                 onSave(title, content, category, selectedTags)
                 onDismiss()
-            }) { Text("Save") }
+            }) {
+                Text(if (existingNote == null) "Save" else "Update") // 👈 Dynamic button text
+            }
         },
         dismissButton = {
             Button(onClick = onDismiss) { Text("Cancel") }

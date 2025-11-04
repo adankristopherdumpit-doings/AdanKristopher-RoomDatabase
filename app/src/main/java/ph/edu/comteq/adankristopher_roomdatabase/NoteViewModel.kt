@@ -1,6 +1,5 @@
 package ph.edu.comteq.adankristopher_roomdatabase
 
-import android.R.attr.tag
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
-class NoteViewModel(application: Application): AndroidViewModel(application) { // Get an instance of the database and then the DAO from it.
+class NoteViewModel(application: Application): AndroidViewModel(application) {
 
     private val noteDao: NoteDao = AppDatabase.getDatabase(application).noteDao()
 
@@ -19,11 +18,34 @@ class NoteViewModel(application: Application): AndroidViewModel(application) { /
 
     val allNotes: Flow<List<Note>> = _searchQuery.flatMapLatest { query ->
         if (query.isBlank()) {
-            noteDao.getALlNotes()  // Show everything
+            noteDao.getALlNotes()
         } else {
             noteDao.searchNotes(query)
         }
     }
+
+    // ADD THESE MISSING FUNCTIONS:
+    fun deleteNote(note: Note) = viewModelScope.launch {
+        noteDao.deleteNote(note)
+    }
+
+    fun updateNoteAndTags(note: Note, selectedTags: List<Tag>) = viewModelScope.launch {
+        // 1. Update the note itself
+        noteDao.updateNote(note)
+
+        // 2. Update the tags - remove all existing and add new ones
+        // First, remove all existing tag connections
+        val existingCrossRefs = noteDao.getNoteTagCrossReferences(note.id)
+        existingCrossRefs.forEach { crossRef ->
+            noteDao.deleteNoteTagCrossRef(crossRef)
+        }
+
+        // Then, add the new tag connections
+        selectedTags.forEach { tag ->
+            noteDao.insertNoteTagCrossRef(NoteTagCrossRef(note.id, tag.id))
+        }
+    }
+
     fun insertNoteReturningId(note: Note, tags: List<Tag>) = viewModelScope.launch {
         // 1️⃣ Insert the note and get its generated ID
         val noteId = noteDao.insertNoteReturningId(note).toInt()
@@ -50,10 +72,6 @@ class NoteViewModel(application: Application): AndroidViewModel(application) { /
 
     fun update(note: Note) = viewModelScope.launch {
         noteDao.updateNote(note)
-    }
-
-    fun delete(note: Note) = viewModelScope.launch {
-        noteDao.deleteNote(note)
     }
 
     // NEW: All notes WITH their tags
@@ -100,5 +118,6 @@ class NoteViewModel(application: Application): AndroidViewModel(application) { /
             noteDao.insertNoteTagCrossRef(NoteTagCrossRef(noteId, tag.id))
         }
     }
+
     val allTags: Flow<List<Tag>> = noteDao.getAllTags()
 }

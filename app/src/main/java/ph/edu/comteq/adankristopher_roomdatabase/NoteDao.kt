@@ -63,6 +63,8 @@ interface NoteDao {
     @Query("SELECT * FROM tags ORDER BY name ASC")
     fun getAllTags(): Flow<List<Tag>>
 
+    @Query("SELECT * FROM note_tag_cross_ref WHERE note_id = :noteId")
+    suspend fun getNoteTagCrossReferences(noteId: Int): List<NoteTagCrossRef>
     @Query("SELECT * FROM tags WHERE id = :id")
     suspend fun getTagById(id: Int): Tag?
 
